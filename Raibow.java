@@ -10,7 +10,7 @@ public class Raibow {
     {     String initalPwd = "0000000";
       List<String> initalPWList = new ArrayList<>();
      initalPWList.add(initalPwd);
-      for (int i = 0; i < 8899000; i++) {
+      for (int i = 0; i < 2000; i++) {
             
             
             char prev = initalPwd.charAt(initalPwd.length() - 1);
