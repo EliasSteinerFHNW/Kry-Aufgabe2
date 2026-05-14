@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class Raibow {
+public class Rainbow {
     
 
 
