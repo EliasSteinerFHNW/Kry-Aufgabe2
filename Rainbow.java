@@ -32,6 +32,7 @@ static ArrayList<String> endValues = new ArrayList<>();
   public static void generateHashTable(String initalPwd){
     // creates an arraylist of startvalues and corresponding endvalues in second arraylist
       for (int i = 0; i <= TABLE_LENGTH; i++) {
+        System.out.println("Generating Hashtable: "+ i + " out of "+ TABLE_LENGTH);
         startValues.add(initalPwd);
         endValues.add(generateEndHash(initalPwd));
         //this does increase the the  value by 1 in base 36 as a next startvalue
@@ -50,23 +51,23 @@ static ArrayList<String> endValues = new ArrayList<>();
             initalPwd= String.valueOf(prevPWD);
             }
       }
+      System.out.println("Hastable generated");
   }
 
 
 
   public static String findPWD(String pwd){
   String init = pwd;
-  int k =0;
+  int k =2000;
   //check if the pwd value is found in the array containing all endvalues
   //if not hash and reduce the pwd  and check again untill 2000 steps are made
-   while (!(endValues.contains(pwd)) && k <2000){
-    pwd = getMd5(pwd);
-    pwd = reduce(pwd, k);
-    System.out.println("trying " + pwd + " at index " + k);
+  //since we need to hash in reverse, the steps also need to be in revere
 
-    // if current pwd is found in endvalue arraylist, get the corresponding startvalue and reduce + hash  startvalue untill the pwd is reached
-    //return the last entry before as the correct password
-    if (endValues.contains(pwd)) {
+   while (!(endValues.contains(pwd)) && k >=0){
+    
+    pwd = reduce(pwd, k);
+    System.out.println(" pwd is:" +  pwd +"applying reduce function: "+ k) ;
+      if (endValues.contains(pwd)) {
       System.out.println("pwd: "+ pwd + "was found in endtables");
         int j =0;
     String startvalue = startValues.get(endValues.indexOf(pwd));
@@ -82,7 +83,9 @@ static ArrayList<String> endValues = new ArrayList<>();
 
     return "Password for Hash:  " +  init  +" is: " +startValuesChain.get(startValuesChain.size()-1);
     }
-    k++;
+
+    pwd = getMd5(pwd);
+    k--;
    }
     String msg= "found no match for " + init +" in hashtable endvalues ";
     return msg;
