@@ -64,11 +64,20 @@ static ArrayList<String> endValues = new ArrayList<>();
   //since we need to hash in reverse, the steps also need to be in revere
 
    while (!(endValues.contains(pwd)) && k >=0){
-    
-    pwd = reduce(pwd, k);
-    System.out.println(" pwd is:" +  pwd +"applying reduce function: "+ k) ;
+  // always start from init pwd and move left in table each time
+    pwd = init;
+   
+    for (int l = 0; l <= (2000-k) ; l++ ){
+    //System.out.println("currently applying reduce function R: "+ (k +l));
+    pwd = reduce(pwd, k+l);
+    pwd = getMd5(pwd);
+    }
+    //is always the last reduce function
+    pwd = reduce(pwd, 2000);
+ System.out.println(" starthash is:" +  init +" applying reduce function at step : "+ k + " endresult is : " + pwd) ;
+   
       if (endValues.contains(pwd)) {
-      System.out.println("pwd: "+ pwd + "was found in endtables");
+      System.out.println("hash: "+ pwd + "was found in endtable");
         int j =0;
     String startvalue = startValues.get(endValues.indexOf(pwd));
     ArrayList<String> startValuesChain = new ArrayList<>();
