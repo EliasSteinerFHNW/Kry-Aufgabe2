@@ -1,5 +1,4 @@
 package programmieraufgabe2;
-
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -12,32 +11,28 @@ public class Rainbow {
   private final static int TABLE_LENGTH = 2000;
   private final static int TABLE_DEPTH = 2000;
 
-  
 static ArrayList<String> startValues = new ArrayList<>();
-
 static ArrayList<String> endValues = new ArrayList<>();
 
 
   public static void main(String[] args)
     { 
-    
-      // genereates HAshtable absed on starting PWD
-     generateHashTable("0000000");
-
-      System.out.println(findPWD("d56a37fb6b08aa709fe90e12ca59e12"));
-     
-
+      // generates HAshtable based on starting PWD and TableLength
+    generateHashTable("0000000");
+      // tries to find password matching provided hash in hashtable
+    System.out.println(findPWD("1d56a37fb6b08aa709fe90e12ca59e12"));
     }
   
   public static void generateHashTable(String initalPwd){
     // creates an arraylist of startvalues and corresponding endvalues in second arraylist
-      for (int i = 0; i <= TABLE_LENGTH; i++) {
-        System.out.println("Generating Hashtable: "+ i + " out of "+ TABLE_LENGTH);
+      for (int i = 0; i < TABLE_LENGTH; i++) {
+        //.out.println("Generating Hashtable: "+ i + " out of "+ TABLE_LENGTH);
         startValues.add(initalPwd);
         endValues.add(generateEndHash(initalPwd));
+
         //this does increase the the  value by 1 in base 36 as a next startvalue
-           char prev = initalPwd.charAt(initalPwd.length() - 1);
-            char[] prevPWD = initalPwd.toCharArray();
+        char prev = initalPwd.charAt(initalPwd.length() - 1);
+        char[] prevPWD = initalPwd.toCharArray();
             if (prev=='z'){
               int index = initalPwd.length() - 1;
               while (initalPwd.charAt(index)=='z'){
@@ -51,65 +46,70 @@ static ArrayList<String> endValues = new ArrayList<>();
             initalPwd= String.valueOf(prevPWD);
             }
       }
-      System.out.println("Hastable generated");
+      System.out.println("Hashtable generated");
   }
 
 
-
-  public static String findPWD(String pwd){
-  String init = pwd;
-  int k =2000;
-  //check if the pwd value is found in the array containing all endvalues
-  //if not hash and reduce the pwd  and check again untill 2000 steps are made
-  //since we need to hash in reverse, the steps also need to be in revere
-
-   while (!(endValues.contains(pwd)) && k >=0){
-  // always start from init pwd and move left in table each time
-    pwd = init;
-   
-    for (int l = 0; l <= (2000-k) ; l++ ){
-    //System.out.println("currently applying reduce function R: "+ (k +l));
-    pwd = reduce(pwd, k+l);
-    pwd = getMd5(pwd);
-    }
-    //is always the last reduce function
-    pwd = reduce(pwd, 2000);
- System.out.println(" starthash is:" +  init +" applying reduce function at step : "+ k + " endresult is : " + pwd) ;
-   
-      if (endValues.contains(pwd)) {
-      System.out.println("hash: "+ pwd + "was found in endtable");
-        int j =0;
-    String startvalue = startValues.get(endValues.indexOf(pwd));
-    ArrayList<String> startValuesChain = new ArrayList<>();
+public static String findPWD(String hash) {
+    String initHash = hash;
     
-    while (!startvalue.equals(pwd) ){
-    startvalue = getMd5(startvalue);
-    startvalue = reduce(startvalue, j);
-    startValuesChain.add(startvalue);
-    j++;
+    // 1. Walk backward through possible columns (from last column to first)
+    for (int i = 0; i < TABLE_DEPTH; i++) {
+        String currentHash = initHash;
+        String reduced = "";
+        
+        // Compute starting step for the look-ahead sequence
+        int startStep = TABLE_DEPTH - 1 - i; 
+        
+        // Complete the chain from the assumed step to the very end
+        for (int k = startStep; k < TABLE_DEPTH; k++) {
+            reduced = reduce(currentHash, k);
+            currentHash = getMd5(reduced);
+        }
 
+        // Check if this look-ahead endpoint matches a stored end value
+        if (endValues.contains(reduced)) {
+            int chainIndex = endValues.indexOf(reduced);
+            String currentPWD = startValues.get(chainIndex);
+            
+            // 2. Reconstruct the chain forward from the matching Start Value
+            for (int k = 0; k < TABLE_DEPTH; k++) {
+                String hashedPWD = getMd5(currentPWD);
+                
+                // If the hashes match, we successfully cracked it!
+                if (hashedPWD.equals(initHash)) {
+                    return "Password for Hash: " + initHash + " is: " + currentPWD;
+                }
+                
+                // Move to the next link in the chain
+                currentPWD = reduce(hashedPWD, k);
+            }
+        }
     }
 
-    return "Password for Hash:  " +  init  +" is: " +startValuesChain.get(startValuesChain.size()-1);
-    }
+    return "Could not find password in hashtable for Hash: " + initHash;
+}
 
-    pwd = getMd5(pwd);
-    k--;
-   }
-    String msg= "found no match for " + init +" in hashtable endvalues ";
-    return msg;
-  }
-  
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   public static String generateEndHash(String startString){
     String value = startString;
-
     for (int i =0; i<TABLE_DEPTH; i++){
       value = getMd5(value);
       value = reduce(value, i);
     } 
-
     return value;
   }
 
@@ -137,9 +137,6 @@ else{
 
   }
 
-
-
-
 public static String reduce (String hash, int step){
   List<String> reducedHash = new ArrayList<>();
   int l = 7;
@@ -161,16 +158,19 @@ hash = div.toString(16);
 
 //reverse the lsit to output the correct order of chars in string
 ListIterator<String> iterator=reducedHash.listIterator(reducedHash.size());
- String rslt ="";
+String rslt ="";
       while(iterator.hasPrevious())
       {
         rslt+=(iterator.previous());
       }
-  return rslt;
+
+// ensure its always 7 chars long
+      String finalResult = rslt;
+  while (finalResult.length() < l) {
+    finalResult = "0" + finalResult;
+  }
+  return finalResult;
 }
-
-
-
 
 
 public static String getMd5(String input)
